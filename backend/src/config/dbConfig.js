@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-
-const dbConnection = async (uri) => {
+import { db_uri } from "./envConfig.js";
+const dbConnection = async () => {
     try{
-      await mongoose.connect(uri);
+      await mongoose.connect(db_uri);
       console.log('MongoDB Connected...');
     }catch(err){
       console.error(err.message); 

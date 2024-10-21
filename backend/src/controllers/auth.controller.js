@@ -3,23 +3,25 @@ import bcrypt from 'bcrypt';
 import { validatePassword  } from '../shared/helper.js';
 import jwt from 'jsonwebtoken';
 import { jwtSecret } from '../config/envConfig.js';
+import {errorHandler} from '../utils/error.js';
 
-export const signUp = async (req, res) =>{
+
+export const signUp = async (req, res, next) =>{
     try{
         const { username,  email, password, confirmPassword, gender}  = req.body;
         if(!username || !email || !password || !gender){
-            return res.status(400).send({"status" : "failed","message" : "fields are required."})
+            return next(errorHandler(400,"All fields are required."));
         }
         if(password !== confirmPassword){
-            return res.status(400).send({"status" : "failed", "message" : "password and confirmPassword not matched."})
+            return next(errorHandler(400,"Passwords not matched."));
         }
         const isExistUser = await User.findOne({email});
         if(isExistUser){
-            return res.status(400).send({"status" : "failed", "message" : "user already exist."})
+            return next(errorHandler(400,"User already exists."));
         }
         const  isValidPassword = validatePassword(password);
         if(!isValidPassword){
-            return res.status(400).send({"status" : "failed", "message" : "password should have at least one uppercase letter, at least one lowercase letter and minimum 6 characters are required"});
+            return next(errorHandler(400,"There must be strong password."));
         }
         const hashedPassword = bcrypt.hashSync(password,10);
 
@@ -40,7 +42,7 @@ export const signUp = async (req, res) =>{
         if(user){
             //generate jwt token
             const token = await jwt.sign({id : user._id }, jwtSecret);
-           return  res.status(201).send({ "status" : "success", "message" : "User created successfully.", data : {
+            return  res.cookie("access_token",token, {httpOnly : true}).status(201).send({ "status" : "success", "message" : "User created successfully.", data : {
                id : user._id,
                username : user.username,
                email : user.email,
@@ -48,13 +50,11 @@ export const signUp = async (req, res) =>{
                token : token
            }});
         }else{
-            return res.status(400).send({"status" : "failed","message" : "User not created."})
+            return next(errorHandler(400,"User not created."));
         }
-
     }catch(err){
-        console.log(err);
-        return res.status(500).send({"status" : "failed", "message" : "internal server error."});
-
+        console.log("Error : " + err);
+        return next(errorHandler(500,"Internal Server Error."));
     }
 }
 
