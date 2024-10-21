@@ -7,6 +7,7 @@ import dbConnection from './config/dbConfig.js';
 const uri = process.env.REMOTE_DB_URL + process.env.REMOTE_DB; 
 dbConnection(uri);
 
+app.use(express.json());
 app.get('/', (req,res) =>{
     res.send("<h1>Hello World!</h1>");
 })
