@@ -58,8 +58,33 @@ export const signUp = async (req, res, next) =>{
     }
 }
 
-export const signIn = async (req, res) =>{
-            
+export const signIn = async (req, res, next) =>{
+    try{
+            const {email, password} = req.body;
+            const validUser = await User.findOne({email});
+            if(!validUser){
+                return next(errorHandler(404,"User not found."));
+            }
+            const matchPassword = bcrypt.compareSync(password, validUser.password);
+            if(!matchPassword){
+                return next(errorHandler(401,"Invalid Credentials."));
+            }
+            const token = jwt.sign({id : validUser._id}, jwtSecret);
+            res.cookie("access_token", token ,{httpOnly : true}).status(200).send({
+                "status" : "success",
+                "message" : "Sign-in Successfully.",
+                "data"   : {
+                id : validUser._id,
+                username : validUser.username,
+                email : validUser.email,
+                profilePic : validUser.profilePic,
+                token : token
+                }
+            })
+    }catch(err){
+        console.log("Error : " + err);
+        return next(errorHandler(500,"Internal Server Error."));
+    }
 }
 
 export const signOut = async (req, res) =>{
