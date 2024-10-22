@@ -87,6 +87,16 @@ export const signIn = async (req, res, next) =>{
     }
 }
 
-export const signOut = async (req, res) =>{
+export const signOut = async (req, res,next) =>{
+    try{
+            res.clearCookie("access_token");
+            return res.status(200).send({
+                "status" : "success",
+                "message" : "sign-out successfully."
+            })
+    }catch(err){
+        console.log("Error: "+err);
+        return next(errorHandler(500,"Internal Server Error."));
+    }
             
 }
