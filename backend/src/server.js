@@ -18,9 +18,11 @@ app.get('/', (req,res) =>{
 
 import authRoute from './routers/auth.route.js';
 import messageRoute from './routers/message.route.js';
+import userRoute from './routers/user.route.js';
 
 app.use('/api/auth', authRoute);
 app.use('/api/messages', messageRoute)
+app.use('/api/users', userRoute)
 
 
 app.listen(PORT, ()=>{
